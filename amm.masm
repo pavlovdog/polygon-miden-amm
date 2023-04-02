@@ -1,0 +1,130 @@
+# This is a basic program that pushes 1 and 2 onto the stack and adds them.
+# The result is then pushed onto the stack.
+
+
+# Clear old balance and operation
+proc.clean_after_operation.0
+    movup.2 # Old left
+    drop
+
+    movup.2 # Old right
+    drop
+
+    movup.2 # Operation type
+    drop
+
+    movup.2 # Operartion amount
+    drop
+end
+
+proc.swap_left_to_right.0
+    # Check the operation
+    dup.2
+    push.1
+    eq
+
+    if.true
+        dup.3
+        dup.1
+        add # new left balance
+
+        dup.1
+        dup.3
+        mul
+
+        dup.1
+
+        u32checked_div
+        swap
+
+        exec.clean_after_operation
+    end
+end
+
+
+proc.swap_right_to_left.0
+    # Check the operation
+    dup.2
+    push.2
+    eq
+
+    if.true
+        dup.3
+        dup.2
+        add # new right balance
+
+        dup.1
+        dup.3
+        mul
+
+        dup.1
+        u32checked_div
+
+        exec.clean_after_operation
+    end
+end
+
+proc.should_continue.0
+    dup.2
+    push.0
+    neq
+end
+
+proc.add_liquidity_left.0
+    dup.2
+    push.3
+    eq
+
+    if.true
+        # Increase left
+        dup.0
+        dup.4
+        add
+
+        # Correspondingly increase right
+        dup.2
+        dup.1
+        mul
+
+        dup.2
+        u32checked_div
+        swap
+
+        exec.clean_after_operation
+    end
+end
+
+proc.add_liquidity_right.0
+    dup.2
+    push.4
+    eq
+
+    if.true
+        # Increase right
+        dup.1
+        dup.4
+        add
+
+        # Correspondingly increase left
+        dup
+        dup.2
+        mul
+        dup.3
+        u32checked_div
+
+        exec.clean_after_operation
+    end
+end
+
+begin
+    exec.should_continue
+
+    while.true
+        exec.swap_left_to_right
+        exec.swap_right_to_left
+        exec.add_liquidity_left
+        exec.add_liquidity_right
+
+        exec.should_continue
+    end
+end
